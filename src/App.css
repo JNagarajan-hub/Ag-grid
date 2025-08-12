@@ -115,6 +115,7 @@ body {
 
 .ag-cell {
   border-right: 1px solid #00000040;
+  border-bottom: 1px solid #00000040;
 }
 
 .ag-row-hover {

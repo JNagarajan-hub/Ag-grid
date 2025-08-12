@@ -100,7 +100,6 @@ function App() {
 
   };
   const show = () => {
-    console.log(gridRef);
     gridRef.current.api.stopEditing();
     console.log(rowData);
   }
