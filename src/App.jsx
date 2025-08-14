@@ -10,42 +10,37 @@ import axios from "axios";
 import './App.css'
 
 
- 
+
 
 function App() {
 
   const gridRef = useRef();
-
   const [rowData, setRowData] = useState([
     { id: 1, name: "Aarav", gender: "Male", department: "Product Development" },
     { id: 2, name: "Meera", gender: "Female", department: "Marketing" },
     { id: 3, name: "Vikram", gender: "Male", department: "Finance" },
     { id: 4, name: "Ananya", gender: "Female", department: "Human Resources" },
     { id: 5, name: "Rohan", gender: "Male", department: "Quality Assurance" },
-    { id: 6, name: "Ram", gender: "Male", department: "Sales" },
-    // { id: 7, name: "Siddharth", gender: "Male", department: "Operations" },
-    // { id: 8, name: "Priya", gender: "Female", department: "IT Support" },
-    // { id: 9, name: "Arjun", gender: "Male", department: "Design" },
-    // { id: 10, name: "Kavya", gender: "Female", department: "Customer Service" },
-    // { id: 11, name: "Dev", gender: "Male", department: "R&D" },
+    { id: 6, name: "Ram", gender: "Male", department: "Sales" }
   ]);
 
- const customButton = (params) => {
+  const customButton = (params) => {
     return <button className='delbtn' onClick={() => delRow(params.data.id)}><MdDelete className='delicon' /></button>
   }
 
   const colDef = useMemo(() => {
     return [
       {
-        headerName: "SNo",field:"id", valueGetter: "node.rowIndex+1", width: 90,
+        headerName: "SNo", field: "id", valueGetter: "node.rowIndex+1", width: 90,
         headerCheckboxSelection: true,
         checkboxSelection: true,
-
+        editable:false
       },
       { headerName: "Name", field: "name", flex: 1 },
       {
-        headerName: "Gender",
-        field: "gender", flex: 1,
+        field: 'gender',
+        cellEditor: 'agSelectCellEditor',
+        cellEditorParams: { values: ['Male', 'Female'] },
         valueFormatter: params => {
           if (params.value === "Male") {
             return `♂ ${params.value}`;
@@ -55,6 +50,18 @@ function App() {
           }
         }
       },
+      // {
+      //   headerName: "Gender",
+      //   field: "gender", flex: 1,
+      //   valueFormatter: params => {
+      //     if (params.value === "Male") {
+      //       return `♂ ${params.value}`;
+      //     }
+      //     if (params.value === "Female") {
+      //       return `♀ ${params.value}`;
+      //     }
+      //   }
+      // },
       { headerName: "Department", field: "department", flex: 1 },
       { headerName: "Action", field: "button", flex: 1, editable: false, cellRenderer: customButton }
     ]
@@ -85,6 +92,13 @@ function App() {
     }
   };
 
+  const showSelected = () => {
+    const selectedNodes = gridRef.current.api.getSelectedNodes();
+    console.log(selectedNodes);
+    const selectedData = selectedNodes.map((node) => node.data);
+    console.log("Selected Data: ", selectedData);
+  }
+
   const delRow = (id) => {
     const confirmDelete = window.confirm("Are you sure want to delete this item?");
     if (confirmDelete) {
@@ -110,16 +124,24 @@ function App() {
     return {
       editable: true,
       resizable: true,
-      sortable:true
+      sortable: true,
+      singleClickEdit: true
     }
-  },[])
+  }, []);
+  const [search, setSearch] = useState("");
+  const searchFilter = useMemo(() => {
+    if(!search.trim()) return rowData;
+    return rowData.filter((row) => row.name.toLowerCase().includes(search.toLowerCase())
+      || row.department.toLowerCase().includes(search.toLowerCase()));
+  }, [search,rowData])
 
 
 
   const onSearch = (e) => {
-    if (gridRef.current) {
-      gridRef.current.api.setGridOption('quickFilterText', e.target.value.trim());
-    }
+    setSearch(e.target.value);
+    // if (gridRef.current) {
+    //   gridRef.current.api.setGridOption('quickFilterText', e.target.value.trim());
+    // }
   };
   return (
     <>
@@ -127,9 +149,10 @@ function App() {
       <div className="container">
 
         <div className="row">
-          <input type="search" placeholder='search' onInput={onSearch} id='search' />
+          <input type="search" value={search} placeholder='search' onInput={onSearch} id='search' />
           <button onClick={add} id='add'>Add</button>
           <button onClick={show} id='show'>show data</button>
+          <button onClick={showSelected} id='show'>show selected</button>
         </div>
 
         <div className="row1">
@@ -139,7 +162,7 @@ function App() {
         <div className='table'>
           <AgGridReact
             ref={gridRef}
-            rowData={rowData}
+            rowData={searchFilter}
             columnDefs={colDef}
             pagination={true}
             paginationPageSize={5}
@@ -158,6 +181,8 @@ function App() {
 
   )
 }
+
+
 
 export default App
 
